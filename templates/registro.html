@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro - Parqueadero La Cero</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+    <div class="contenedor-login">
+        <h2>Registrar Nuevo Usuario</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alerta {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="campo">
+                <label>Nombre de Usuario:</label>
+                <input type="text" name="username" required placeholder="Ej: juan88">
+            </div>
+            <div class="campo">
+                <label>Contraseña:</label>
+                <input type="password" name="password" required placeholder="********">
+            </div>
+            <div class="campo">
+                <label>Rol en el Sistema:</label>
+                <select name="rol">
+                    <option value="Operador">Operador / Cajero</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Registrar Usuario</button>
+        </form>
+        <p>¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión aquí</a></p>
+    </div>
+</body>
+</html>

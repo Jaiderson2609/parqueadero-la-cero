@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Parqueadero La Cero</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+    <div class="contenedor-login">
+        <h2>Parqueadero La Cero - Ingreso</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alerta {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="campo">
+                <label>Usuario:</label>
+                <input type="text" name="username" required placeholder="Tu usuario">
+            </div>
+            <div class="campo">
+                <label>Contraseña:</label>
+                <input type="password" name="password" required placeholder="********">
+            </div>
+            <button type="submit" class="btn">Iniciar Sesión</button>
+        </form>
+        <p>¿No tienes usuario? <a href="{{ url_for('registro') }}">Regístrate aquí</a></p>
+    </div>
+</body>
+</html>

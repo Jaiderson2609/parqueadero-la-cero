@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Control - Parqueadero La Cero</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+    <div class="contenedor-dashboard">
+        <header class="barra-superior">
+            <h1>Parqueadero La Cero 🚗🏍️</h1>
+            <div class="info-usuario">
+                <span>Usuario: <strong>{{ session['usuario'] }}</strong> ({{ session['rol'] }})</span>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Cerrar Sesión</a>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alerta {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="columnas-dashboard">
+            
+            <div class="columna-acciones">
+                
+                {% if session['rol'] == 'Operador' %}
+                    <div class="tarjeta-modulo">
+                        <h3>📥 Registrar Entrada</h3>
+                        <form action="{{ url_for('entrada') }}" method="POST">
+                            <div class="campo">
+                                <label>Placa del Vehículo:</label>
+                                <input type="text" name="placa" required placeholder="Ej: ABC123" style="text-transform: uppercase;">
+                            </div>
+                            <div class="campo">
+                                <label>Tipo de Vehículo:</label>
+                                <select name="tipo_vehiculo">
+                                    <option value="Carro">Carro ($3.000/h)</option>
+                                    <option value="Moto">Moto ($1.500/h)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-verde">Ingresar Vehículo</button>
+                        </form>
+                    </div>
+
+                    <div class="tarjeta-modulo">
+                        <h3>📤 Registrar Salida y Cobro</h3>
+                        <form action="{{ url_for('salida') }}" method="POST">
+                            <div class="campo">
+                                <label>Placa del Vehículo:</label>
+                                <input type="text" name="placa" required placeholder="Ej: ABC123" style="text-transform: uppercase;">
+                            </div>
+                            <button type="submit" class="btn btn-rojo">Procesar Salida</button>
+                        </form>
+                    </div>
+                {% endif %}
+
+                {% if session['rol'] == 'Administrador' %}
+                    <div class="tarjeta-modulo tarjeta-admin">
+                        <h3>💰 Panel de Supervisión Contable</h3>
+                        <p class="texto-recaudo">Recaudo Total de Hoy:</p>
+                        <div class="cifra-recaudo">${{ "{:,.2f}".format(recaudo) }}</div>
+                        <p style="color: #556b2f; font-size: 13px; margin-top: 15px; line-height: 1.4;">
+                            * Tu rol de <strong>Administrador</strong> está restringido al control financiero. Las acciones de registro de entrada y salida están deshabilitadas para este perfil.
+                        </p>
+                    </div>
+                {% endif %}
+                
+            </div>
+
+            <div class="columna-tabla">
+                <div class="tarjeta-modulo">
+                    <h3>📋 Vehículos Actualmente en el Parqueadero</h3>
+                    <table class="tabla-datos">
+                        <thead>
+                            <tr>
+                                <th>ID Reg</th>
+                                <th>Placa</th>
+                                <th>Tipo</th>
+                                <th>Hora de Ingreso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if vehiculos %}
+                                {% for v in vehiculos %}
+                                <tr>
+                                    <td>{{ v.id_res }}</td>
+                                    <td class="resaltar-placa">{{ v.v_placa }}</td>
+                                    <td>
+                                        {% if v.v_tipo == 'Carro' %} 🚗 Carro {% else %} 🏍️ Moto {% endif %}
+                                    </td>
+                                    <td>{{ v.f_entrada.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #888; padding: 30px;">
+                                        No hay vehículos dentro del parqueadero en este momento.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
