@@ -6,7 +6,6 @@ import hashlib
 app = Flask(__name__)
 app.secret_key = 'parqueadero_la_cero_secret_key'
 
-
 DB_HOST = "localhost"
 DB_NAME = "parqueadero_la_cero" 
 DB_USER = "postgres"
@@ -94,6 +93,7 @@ def logout():
     return redirect(url_for('login'))
 
 
+# --- CONTROL DE PANEL GENERAL ---
 
 @app.route('/dashboard')
 def dashboard():
@@ -104,19 +104,18 @@ def dashboard():
     conn = obtener_conexion()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-   
+    # Obtener el estado del patio actual
     cur.execute("SELECT * FROM obtener_vehiculos_dentro();")
     vehiculos_dentro = cur.fetchall()
     
-   
+    # Cálculo condicional del recaudo para el Administrador
     recaudo_hoy = 0
     if session['rol'] == 'Administrador':
-        from datetime import date
-        cur.execute("SELECT reporte_ingresos_diarios(%s);", (date.today(),))
+        # Se invoca la nueva función procedimental que filtra por el último corte a cero
+        cur.execute("SELECT public.reporte_ingresos_desde_reinicio();")
         resultado = cur.fetchone()
         if resultado:
-            
-            recaudo_hoy = resultado['reporte_ingresos_diarios']
+            recaudo_hoy = resultado['reporte_ingresos_desde_reinicio']
             
     cur.close()
     conn.close()
@@ -124,12 +123,14 @@ def dashboard():
     return render_template('dashboard.html', vehiculos=vehiculos_dentro, recaudo=recaudo_hoy)
 
 
+# --- OPERACIONES DE FLUJO DE PATIO ---
+
 @app.route('/entrada', methods=['POST'])
 def entrada():
     if 'usuario' not in session:
         return redirect(url_for('login'))
         
-    # 🔥 NUEVA VALIDACIÓN: Bloquear al Administrador
+    # Bloquear al Administrador de tareas de patio
     if session.get('rol') == 'Administrador':
         flash('Acceso denegado: Los administradores no pueden registrar entradas.', 'danger')
         return redirect(url_for('dashboard'))
@@ -161,7 +162,7 @@ def salida():
     if 'usuario' not in session:
         return redirect(url_for('login'))
         
-    # 🔥 NUEVA VALIDACIÓN: Bloquear al Administrador
+    # Bloquear al Administrador de tareas de patio
     if session.get('rol') == 'Administrador':
         flash('Acceso denegado: Los administradores no pueden registrar salidas.', 'danger')
         return redirect(url_for('dashboard'))
@@ -192,6 +193,31 @@ def salida():
         flash(f'Error al registrar salida: {str(e)}', 'danger')
         
     return redirect(url_for('dashboard'))
+
+
+# --- LOGICA ADMINISTRATIVA AVANZADA ---
+
+@app.route('/admin/reiniciar-recaudo', methods=['POST'])
+def reiniciar_recaudo():
+    if 'usuario' not in session or session.get('rol') != 'Administrador':
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        conn = obtener_conexion()
+        cur = conn.cursor()
+        # Insertamos la marca de tiempo actual en la tabla de control para fijar el punto cero
+        cur.execute('INSERT INTO public.cierres_caja DEFAULT VALUES;')
+        conn.commit()
+        cur.close()
+        conn.close()
+        flash('El recaudo en pantalla se ha restablecido a cero con éxito.', 'success')
+    except Exception as e:
+        flash(f'Error al reiniciar el recaudo: {str(e)}', 'danger')
+        
+    return redirect(url_for('dashboard'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)
- 
+    

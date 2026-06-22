@@ -61,8 +61,18 @@
                 {% if session['rol'] == 'Administrador' %}
                     <div class="tarjeta-modulo tarjeta-admin">
                         <h3>💰 Panel de Supervisión Contable</h3>
-                        <p class="texto-recaudo">Recaudo Total de Hoy:</p>
+                        <p class="texto-recaudo">Recaudo Total Actual:</p>
                         <div class="cifra-recaudo">${{ "{:,.2f}".format(recaudo) }}</div>
+                        
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #ccc; text-align: center;">
+                            <form action="{{ url_for('reiniciar_recaudo') }}" method="POST">
+                                <button type="submit" class="btn btn-rojo" style="background-color: #e67e22; border-color: #d35400;"
+                                        onclick="return confirm('¿Desea restablecer el total recaudado en pantalla a $0? Los vehículos en el patio seguirán activos.');">
+                                    🔄 Restablecer Recaudo a $0
+                                </button>
+                            </form>
+                        </div>
+
                         <p style="color: #556b2f; font-size: 13px; margin-top: 15px; line-height: 1.4;">
                             * Tu rol de <strong>Administrador</strong> está restringido al control financiero. Las acciones de registro de entrada y salida están deshabilitadas para este perfil.
                         </p>
